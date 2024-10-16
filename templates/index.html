@@ -18,14 +18,22 @@
         let flippedCards = [];
         let matchedCards = [];
 
-        // Mostrar las cartas por 5 segundos
+        //Mostrar las cartas despues de 0.5 segundos
         setTimeout(() => {
             document.querySelectorAll('.card').forEach(card => {
-                card.classList.remove('flipped');
-                card.querySelector('.card-image').style.display = 'none'; // Voltear las cartas
+                card.classList.add('flipped');
+                card.querySelector('.card-image').style.display = 'block'; 
             });
-        }, 5000);
+            //Ocultar las cartas despues de 5 segundos
+            setTimeout(() => {
+                document.querySelectorAll('.card').forEach(card => {
+                    card.classList.remove('flipped');
+                    card.querySelector('.card-image').style.display = 'none';
+                });
+            }, 5000);
+        }, 800);
 
+        
         function flipCard(card) {
             if (flippedCards.length < 2 && !matchedCards.includes(card)) {
                 card.classList.add('flipped');
