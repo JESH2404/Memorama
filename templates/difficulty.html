@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selecciona Dificultad</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .difficulty-button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Selecciona Dificultad</h1>
+        <form action="/play" method="post">
+            <button type="submit" name="difficulty" value="easy" class="difficulty-button">Fácil</button>
+            <button type="submit" name="difficulty" value="medium" class="difficulty-button">Media</button>
+            <button type="submit" name="difficulty" value="hard" class="difficulty-button">Difícil</button>
+        </form>
+    </div>
+</body>
+</html>

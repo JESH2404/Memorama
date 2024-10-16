@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Memorama</title>
+</head>
+<body>
+    <div id="game-board">
+        {% for card in cards %}
+            <div class="card" data-card="{{ card }}" onclick="flipCard(this)">
+                <img src="{{ url_for('static', filename='images/' + card) }}" alt="" class="card-image" />
+            </div>
+        {% endfor %}
+    </div>
+    <script>
+        let flippedCards = [];
+        let matchedCards = [];
+
+        // Mostrar las cartas por 5 segundos
+        setTimeout(() => {
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('flipped');
+                card.querySelector('.card-image').style.display = 'none'; // Voltear las cartas
+            });
+        }, 5000);
+
+        function flipCard(card) {
+            if (flippedCards.length < 2 && !matchedCards.includes(card)) {
+                card.classList.add('flipped');
+                card.querySelector('.card-image').style.display = 'block'; // Mostrar carta
+                flippedCards.push(card);
+
+                if (flippedCards.length === 2) {
+                    checkMatch();
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [firstCard, secondCard] = flippedCards;
+            if (firstCard.getAttribute('data-card') === secondCard.getAttribute('data-card')) {
+                matchedCards.push(firstCard);
+                matchedCards.push(secondCard);
+            } else {
+                setTimeout(() => {
+                    firstCard.classList.remove('flipped');
+                    firstCard.querySelector('.card-image').style.display = 'none'; // Voltear de nuevo
+                    secondCard.classList.remove('flipped');
+                    secondCard.querySelector('.card-image').style.display = 'none';
+                }, 1000);
+            }
+            flippedCards = []; // Resetear las cartas volteadas
+        }
+    </script>
+</body>
+</html>
