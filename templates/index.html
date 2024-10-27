@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <title>Memorama</title>
 </head>
 <body>
@@ -15,8 +15,13 @@
         {% endfor %}
     </div>
     <script>
+        const REDIRECT_DELAY = 500;
+        const TOTAL_CARDS = document.querySelectorAll('.card').length;
+
         let flippedCards = [];
         let matchedCards = [];
+
+        let score = 100;
 
         //Mostrar las cartas despues de 0.5 segundos
         setTimeout(() => {
@@ -60,7 +65,49 @@
                 }, 1000);
             }
             flippedCards = []; // Resetear las cartas volteadas
+            
+            checkGameState();
         }
+
+        // Función para verificar si el jugador ha ganado o perdido
+        function checkGameState() {
+            if (matchedCards.length === TOTAL_CARDS) {
+                redirectToEnd('win');  // Redirigir si ganó
+            } else if (score === 0) {
+                redirectToEnd('loss');  // Redirigir si perdió
+            }
+        }
+        
+        // Función que maneja la redirección dependiendo del resultado (win/lose)
+        function redirectToEnd(result) {
+            fetch('/end', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: result })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.replace("/end");
+                } else {
+                    throw new Error('Error en la solicitud');
+                }
+            })
+            .catch(error => console.error('ERROR:', error));
+        }
+
+        // Ajustar el max-width del game-board
+        const gameBoard = document.getElementById('game-board');
+
+        if (TOTAL_CARDS === 6) {
+            gameBoard.style.maxWidth = (3*110) + 'px';
+        }
+        if (TOTAL_CARDS === 12) {
+            gameBoard.style.maxWidth = (4*110) + 'px';
+        }
+        if (TOTAL_CARDS === 20) {
+            gameBoard.style.maxWidth = (5*110) + 'px';
+        }
+
     </script>
 </body>
 </html>

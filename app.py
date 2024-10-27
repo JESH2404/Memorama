@@ -1,8 +1,9 @@
 import random
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
+app.secret_key = '123459384'  # Necesario para manejar sesiones
 
 # Definir las cartas para cada dificultad
 difficulties = {
@@ -12,19 +13,53 @@ difficulties = {
              'imagen7.png', 'imagen8.png', 'imagen9.png', 'imagen10.png']
 }
 
+messages = {
+    'win' : "¡Felicidades! Has encontrado todos los pares.",
+    'loss': "Lo siento, has perdido. Se acabaron tus intentos."
+}
+
 
 @app.route('/')
 def index():
     return render_template('difficulty.html')
 
-
-@app.route('/play', methods=['POST'])
+@app.route('/play', methods=['GET', 'POST'])
 def play():
-    difficulty = request.form.get('difficulty')
-    cards = difficulties[difficulty] * 2  # Crear pares
-    random.shuffle(cards)  # Mezclar las cartas
-    return render_template('index.html', cards=cards)
+    if request.method == 'POST':
+        difficulty = request.form.get('difficulty')
+        session['difficulty'] = difficulty
 
+        cards = difficulties[difficulty] * 2  # Crear pares
+        random.shuffle(cards)  # Mezclar las cartas
+
+        session['cards'] = cards
+
+        return redirect(url_for('play'))
+    return render_template('index.html', cards=session['cards'])  
+
+@app.route('/end', methods=['GET', 'POST'])
+def end():
+    if request.method == 'POST':
+        # Obtener los datos enviados por POST (por ejemplo, si ganó o perdió)
+        data = request.get_json()
+        result = data.get('status')
+        
+        # Guardar el resultado en la sesión
+        session['result'] = result
+        
+
+        # Redirigir a la misma ruta /end con GET para mostrar el resultado
+        return redirect(url_for('end'))
+
+    if request.method == 'GET':
+        # Obtener el resultado de la sesión
+        result = session.get('result')
+
+        if not result:
+            return redirect(url_for('index'))
+
+        # Renderizar la página con el mensaje correspondiente
+        return render_template('end.html', message=messages[result])
 
 if __name__ == '__main__':
     app.run(debug=True)
