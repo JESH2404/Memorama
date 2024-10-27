@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='end.css') }}">
+    <title>Memorama - Resultado</title>
+</head>
+<body>
+    <div class="content">
+        <h1>PARTIDA CONCLUIDA</h1>
+
+        <h3>{{ message }}</h3>
+        
+        <p>Guarda tu partida</p>
+        <textarea id="playerName" rows="1" cols="30" placeholder="Escribe tu nombre aquí..." value = "" class = "name-area"></textarea>
+
+        <br><br>
+        
+        <button onclick="submitName()" class = "accept-button">ACEPTAR</button>
+    </div>
+
+    <script>
+        function submitName() {
+            const playerName = document.getElementById('playerName').value;
+            if (playerName) {
+                //aqui la funcion de redireccion a la tabla de puntuaciones
+            } else {
+                //se permite no dar nombre asigna un nombre provisional
+                document.getElementById('playerName').value = 'Anonimo'
+            }
+        }
+    </script>
+</body>
+</html>
