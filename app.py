@@ -35,6 +35,13 @@ def play():
 
         session['cards'] = cards
 
+        if difficulty == 'easy':
+            session['score'] = 30
+        elif difficulty == 'medium':
+            session['score'] = 60
+        elif difficulty == 'hard':
+            session['score'] = 100
+            
         return redirect(url_for('play'))
     return render_template('index.html', cards=session['cards'])
 

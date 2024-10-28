@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='index.css') }}"
@@ -10,6 +12,20 @@
     <title>Memorama</title>
   </head>
   <body>
+
+    <div id="score-display">Puntaje: <span id="score">{{ session['score'] }}</span></div>
+
+    <style>
+        #score-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+
     <div id="counter">Tiempo: 0</div>
 
     <div id="game-board">
@@ -24,13 +40,15 @@
       {% endfor %}
     </div>
     <script>
-      const REDIRECT_DELAY = 500;
-      const TOTAL_CARDS = document.querySelectorAll(".card").length;
+
 
       let flippedCards = [];
       let matchedCards = [];
 
-      let score = 100;
+      let score = {{ session['score'] | tojson }};
+                let difficulty = "{{ session['difficulty'] }}";  // Ajuste aquí para tratar difficulty como string
+                const REDIRECT_DELAY = 500;
+                const TOTAL_CARDS = document.querySelectorAll('.card').length;
 
       //Mostrar las cartas despues de 0.5 segundos
       setTimeout(() => {
@@ -61,22 +79,35 @@
 
       function checkMatch() {
         const [firstCard, secondCard] = flippedCards;
-        if (
-          firstCard.getAttribute("data-card") ===
-          secondCard.getAttribute("data-card")
-        ) {
-          matchedCards.push(firstCard);
-          matchedCards.push(secondCard);
+        if (firstCard.getAttribute('data-card') === secondCard.getAttribute('data-card')) {
+                matchedCards.push(firstCard);
+                matchedCards.push(secondCard);
         } else {
           setTimeout(() => {
             firstCard.classList.remove("flipped");
             firstCard.querySelector(".card-image").style.display = "none"; // Voltear de nuevo
             secondCard.classList.remove("flipped");
             secondCard.querySelector(".card-image").style.display = "none";
-          }, 500);
+          }, 1000);
+
+          // Disminuir el puntaje dependiendo de la dificultad
+          if (difficulty === 'easy') {
+                    score -= 5;
+                } else if (difficulty === 'medium') {
+                    score -= 10;
+                } else if (difficulty === 'hard') {
+                    score -= 15;
+                }
+
+                // Actualizar el puntaje en pantalla
+                document.getElementById('score').innerText = score;
+
+                // Terminar el juego si el puntaje llega a 0
+                if (score <= 0) {
+                    redirectToEnd('loss');
+                }          
         }
         flippedCards = []; // Resetear las cartas volteadas
-
         checkGameState();
       }
 
