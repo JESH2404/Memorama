@@ -10,7 +10,7 @@
     <title>Memorama</title>
   </head>
   <body>
-    <title id="counter">0</title>
+    <div id="counter">Tiempo: 0</div>
 
     <div id="game-board">
       {% for card in cards %}
@@ -44,7 +44,7 @@
             card.classList.remove("flipped");
             card.querySelector(".card-image").style.display = "none";
           });
-        }, 5000);
+        }, 3000);
       }, 800);
 
       function flipCard(card) {
@@ -73,7 +73,7 @@
             firstCard.querySelector(".card-image").style.display = "none"; // Voltear de nuevo
             secondCard.classList.remove("flipped");
             secondCard.querySelector(".card-image").style.display = "none";
-          }, 1000);
+          }, 500);
         }
         flippedCards = []; // Resetear las cartas volteadas
 
@@ -123,14 +123,17 @@
       const maxCount = 999;
       const counterElement = document.getElementById("counter");
 
-      const interval = setInterval(() => {
-        count++;
-        counterElement.textContent = count;
+      // Retrasa el inicio del contador en 3 segundos
+      setTimeout(() => {
+        const interval = setInterval(() => {
+          count++;
+          counterElement.textContent = `Tiempo: ${count}`;
 
-        if (count >= maxCount) {
-          clearInterval(interval);
-        }
-      }, 1000); // 1000 ms = 1 segundo
+          if (count >= maxCount) {
+            clearInterval(interval);
+          }
+        }, 1000); // 1000 ms = 1 segundo
+      }, 3000); // 3000 ms = 3 segundos de retraso
     </script>
   </body>
 </html>
