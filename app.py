@@ -14,7 +14,7 @@ difficulties = {
 }
 
 messages = {
-    'win' : "¡Felicidades! Has encontrado todos los pares.",
+    'win': "¡Felicidades! Has encontrado todos los pares.",
     'loss': "Lo siento, has perdido. Se acabaron tus intentos."
 }
 
@@ -22,6 +22,7 @@ messages = {
 @app.route('/')
 def index():
     return render_template('difficulty.html')
+
 
 @app.route('/play', methods=['GET', 'POST'])
 def play():
@@ -35,7 +36,8 @@ def play():
         session['cards'] = cards
 
         return redirect(url_for('play'))
-    return render_template('index.html', cards=session['cards'])  
+    return render_template('index.html', cards=session['cards'])
+
 
 @app.route('/end', methods=['GET', 'POST'])
 def end():
@@ -43,10 +45,9 @@ def end():
         # Obtener los datos enviados por POST (por ejemplo, si ganó o perdió)
         data = request.get_json()
         result = data.get('status')
-        
+
         # Guardar el resultado en la sesión
         session['result'] = result
-        
 
         # Redirigir a la misma ruta /end con GET para mostrar el resultado
         return redirect(url_for('end'))
@@ -60,6 +61,7 @@ def end():
 
         # Renderizar la página con el mensaje correspondiente
         return render_template('end.html', message=messages[result])
+
 
 if __name__ == '__main__':
     app.run(debug=True)
