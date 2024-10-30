@@ -1,117 +1,149 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='index.css') }}"
+    />
     <title>Memorama</title>
-</head>
-<body>
+  </head>
+  <body>
+    <div id="counter">Tiempo: 0</div>
+
     <div id="game-board">
-        {% for card in cards %}
-            <div class="card" data-card="{{ card }}" onclick="flipCard(this)">
-                <img src="{{ url_for('static', filename='images/' + card) }}" alt="" class="card-image" />
-            </div>
-        {% endfor %}
+      {% for card in cards %}
+      <div class="card" data-card="{{ card }}" onclick="flipCard(this)">
+        <img
+          src="{{ url_for('static', filename='images/' + card) }}"
+          alt=""
+          class="card-image"
+        />
+      </div>
+      {% endfor %}
     </div>
     <script>
-        const REDIRECT_DELAY = 500;
-        const TOTAL_CARDS = document.querySelectorAll('.card').length;
+      const REDIRECT_DELAY = 500;
+      const TOTAL_CARDS = document.querySelectorAll(".card").length;
 
-        let flippedCards = [];
-        let matchedCards = [];
+      let flippedCards = [];
+      let matchedCards = [];
 
-        let score = 100;
+      let score = 100;
 
-        //Mostrar las cartas despues de 0.5 segundos
+      //Mostrar las cartas despues de 0.5 segundos
+      setTimeout(() => {
+        document.querySelectorAll(".card").forEach((card) => {
+          card.classList.add("flipped");
+          card.querySelector(".card-image").style.display = "block";
+        });
+        //Ocultar las cartas despues de 5 segundos
         setTimeout(() => {
-            document.querySelectorAll('.card').forEach(card => {
-                card.classList.add('flipped');
-                card.querySelector('.card-image').style.display = 'block'; 
-            });
-            //Ocultar las cartas despues de 5 segundos
-            setTimeout(() => {
-                document.querySelectorAll('.card').forEach(card => {
-                    card.classList.remove('flipped');
-                    card.querySelector('.card-image').style.display = 'none';
-                });
-            }, 5000);
-        }, 800);
+          document.querySelectorAll(".card").forEach((card) => {
+            card.classList.remove("flipped");
+            card.querySelector(".card-image").style.display = "none";
+          });
+        }, 3000);
+      }, 800);
 
-        
-        function flipCard(card) {
-            if (flippedCards.length < 2 && !matchedCards.includes(card)) {
-                card.classList.add('flipped');
-                card.querySelector('.card-image').style.display = 'block'; // Mostrar carta
-                flippedCards.push(card);
+      function flipCard(card) {
+        if (flippedCards.length < 2 && !matchedCards.includes(card)) {
+          card.classList.add("flipped");
+          card.querySelector(".card-image").style.display = "block"; // Mostrar carta
+          flippedCards.push(card);
 
-                if (flippedCards.length === 2) {
-                    checkMatch();
-                }
-            }
+          if (flippedCards.length === 2) {
+            checkMatch();
+          }
         }
+      }
 
-        function checkMatch() {
-            const [firstCard, secondCard] = flippedCards;
-            if (firstCard.getAttribute('data-card') === secondCard.getAttribute('data-card')) {
-                matchedCards.push(firstCard);
-                matchedCards.push(secondCard);
+      function checkMatch() {
+        const [firstCard, secondCard] = flippedCards;
+        if (
+          firstCard.getAttribute("data-card") ===
+          secondCard.getAttribute("data-card")
+        ) {
+          matchedCards.push(firstCard);
+          matchedCards.push(secondCard);
+        } else {
+          setTimeout(() => {
+            firstCard.classList.remove("flipped");
+            firstCard.querySelector(".card-image").style.display = "none"; // Voltear de nuevo
+            secondCard.classList.remove("flipped");
+            secondCard.querySelector(".card-image").style.display = "none";
+          }, 500);
+        }
+        flippedCards = []; // Resetear las cartas volteadas
+
+        checkGameState();
+      }
+
+      // Función para verificar si el jugador ha ganado o perdido
+      function checkGameState() {
+        if (matchedCards.length === TOTAL_CARDS) {
+          redirectToEnd("win"); // Redirigir si ganó
+        } else if (score === 0) {
+          redirectToEnd("loss"); // Redirigir si perdió
+        }
+      }
+
+      // Función que maneja la redirección dependiendo del resultado (win/lose)
+      function redirectToEnd(result) {
+        fetch("/end", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: result }),
+        })
+          .then((response) => {
+            if (response.ok) {
+              window.location.replace("/end");
             } else {
-                setTimeout(() => {
-                    firstCard.classList.remove('flipped');
-                    firstCard.querySelector('.card-image').style.display = 'none'; // Voltear de nuevo
-                    secondCard.classList.remove('flipped');
-                    secondCard.querySelector('.card-image').style.display = 'none';
-                }, 1000);
+              throw new Error("Error en la solicitud");
             }
-            flippedCards = []; // Resetear las cartas volteadas
-            
-            checkGameState();
-        }
+          })
+          .catch((error) => console.error("ERROR:", error));
+      }
 
-        // Función para verificar si el jugador ha ganado o perdido
-        function checkGameState() {
-            if (matchedCards.length === TOTAL_CARDS) {
-                redirectToEnd('win');  // Redirigir si ganó
-            } else if (score === 0) {
-                redirectToEnd('loss');  // Redirigir si perdió
-            }
-        }
-        
-        // Función que maneja la redirección dependiendo del resultado (win/lose)
-        function redirectToEnd(result) {
-            fetch('/end', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: result })
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.replace("/end");
-                } else {
-                    throw new Error('Error en la solicitud');
-                }
-            })
-            .catch(error => console.error('ERROR:', error));
-        }
+      // Ajustar el max-width del game-board
+      const gameBoard = document.getElementById("game-board");
 
-        // Ajustar el max-width del game-board
-        const gameBoard = document.getElementById('game-board');
+      if (TOTAL_CARDS === 6) {
+        gameBoard.style.maxWidth = 3 * 110 + "px";
+      }
+      if (TOTAL_CARDS === 12) {
+        gameBoard.style.maxWidth = 4 * 110 + "px";
+      }
+      if (TOTAL_CARDS === 20) {
+        gameBoard.style.maxWidth = 5 * 110 + "px";
+      }
 
-        if (TOTAL_CARDS === 6) {
-            gameBoard.style.maxWidth = (3*110) + 'px';
-        }
-        if (TOTAL_CARDS === 12) {
-            gameBoard.style.maxWidth = (4*110) + 'px';
-        }
-        if (TOTAL_CARDS === 20) {
-            gameBoard.style.maxWidth = (5*110) + 'px';
-        }
+      let count = 0;
+      const maxCount = 999;
+      const counterElement = document.getElementById("counter");
 
+      // Retrasa el inicio del contador en 3 segundos
+      setTimeout(() => {
+        const interval = setInterval(() => {
+          count++;
+          counterElement.textContent = `Tiempo: ${count}`;
+
+          if (count >= maxCount) {
+            clearInterval(interval);
+          }
+        }, 1000); // 1000 ms = 1 segundo
+      }, 3000); // 3000 ms = 3 segundos de retraso
     </script>
 
     <form action="{{ url_for('index') }}">
-        <button type="submit" class="boton-izquierda-inferior">CAMBIAR DIFICULTAD</button>
+        <button type="submit" class="boton-izquierda-inferior btn btn-success btn-lg">CAMBIAR DIFICULTAD</button>
     </form>
 </body>
 </html>
