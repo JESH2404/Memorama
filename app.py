@@ -45,7 +45,7 @@ def play():
         return redirect(url_for('play'))
     return render_template('index.html', cards=session['cards'])
 
-
+#
 @app.route('/end', methods=['GET', 'POST'])
 def end():
     if request.method == 'POST':
