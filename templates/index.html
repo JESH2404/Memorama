@@ -46,11 +46,11 @@
       {% endfor %}
     </div>
     <script>
-        const REDIRECT_DELAY = 500;
+        const REDIRECT_DELAY = 300;
         const TOTAL_CARDS = document.querySelectorAll('.card').length;
         const GAME_BOARD = document.getElementById("game-board");
         const TIME_TO_SHOW = 3000;
-        const SMOOTH_TRANSITION = 800;
+        const SMOOTH_TRANSITION = 500;
 
         let score = document.body.getAttribute('data-score');
         let difficulty = document.body.getAttribute('data-difficulty');
@@ -97,8 +97,8 @@
                     if (count >= maxCount) {
                         clearInterval(interval); // Detener el intervalo
                     }
-                }, 800); 
-            }, TIME_TO_SHOW+SMOOTH_TRANSITION); 
+                }, REDIRECT_DELAY); 
+            }, TIME_TO_SHOW); 
         }        
         
         function setDimensions(){
@@ -140,7 +140,7 @@
                 firstCard.querySelector(".card-image").style.display = "none"; // Voltear de nuevo
                 secondCard.classList.remove("flipped");
                 secondCard.querySelector(".card-image").style.display = "none";
-                }, 1000);
+                }, 500);
 
                 // Disminuir el puntaje dependiendo de la dificultad
                 if (difficulty === 'easy') {
