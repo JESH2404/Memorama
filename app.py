@@ -49,24 +49,19 @@ def play():
 @app.route('/end', methods=['GET', 'POST'])
 def end():
     if request.method == 'POST':
-        # Obtener los datos enviados por POST (por ejemplo, si ganó o perdió)
         data = request.get_json()
         result = data.get('status')
 
-        # Guardar el resultado en la sesión
         session['result'] = result
 
-        # Redirigir a la misma ruta /end con GET para mostrar el resultado
         return redirect(url_for('end'))
 
     if request.method == 'GET':
-        # Obtener el resultado de la sesión
         result = session.get('result')
 
         if not result:
             return redirect(url_for('index'))
 
-        # Renderizar la página con el mensaje correspondiente
         return render_template('end.html', message=messages[result])
 
 

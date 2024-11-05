@@ -17,7 +17,7 @@
     />
     <title>Memorama</title>
   </head>
-  <body>
+  <body data-score="{{ session['score'] }}" data-difficulty="{{ session['difficulty'] }}">
 
     <div id="score-display">Puntaje: <span id="score">{{ session['score'] }}</span></div>
 
@@ -46,131 +46,148 @@
       {% endfor %}
     </div>
     <script>
+        const REDIRECT_DELAY = 500;
+        const TOTAL_CARDS = document.querySelectorAll('.card').length;
+        const GAME_BOARD = document.getElementById("game-board");
+        const TIME_TO_SHOW = 3000;
+        const SMOOTH_TRANSITION = 800;
 
+        let score = document.body.getAttribute('data-score');
+        let difficulty = document.body.getAttribute('data-difficulty');
 
-      let flippedCards = [];
-      let matchedCards = [];
+        let flippedCards = [];
+        let matchedCards = [];
+        let on_game = false;
 
-      let score = {{ session['score'] | tojson }};
-                let difficulty = "{{ session['difficulty'] }}";  // Ajuste aquí para tratar difficulty como string
-                const REDIRECT_DELAY = 500;
-                const TOTAL_CARDS = document.querySelectorAll('.card').length;
+        setDimensions();
+        showCards();
+        startGame();
 
-      //Mostrar las cartas despues de 0.5 segundos
-      setTimeout(() => {
-        document.querySelectorAll(".card").forEach((card) => {
-          card.classList.add("flipped");
-          card.querySelector(".card-image").style.display = "block";
-        });
-        //Ocultar las cartas despues de 5 segundos
-        setTimeout(() => {
-          document.querySelectorAll(".card").forEach((card) => {
-            card.classList.remove("flipped");
-            card.querySelector(".card-image").style.display = "none";
-          });
-        }, 3000);
-      }, 800);
+        
+        function showCards() {
+            setTimeout(() => {
+                document.querySelectorAll(".card").forEach((card) => {
+                    card.classList.add("flipped");
+                    card.querySelector(".card-image").style.display = "block";
+                });
 
-      function flipCard(card) {
-        if (flippedCards.length < 2 && !matchedCards.includes(card)) {
-          card.classList.add("flipped");
-          card.querySelector(".card-image").style.display = "block"; // Mostrar carta
-          flippedCards.push(card);
-
-          if (flippedCards.length === 2) {
-            checkMatch();
-          }
+                setTimeout(() => {
+                    document.querySelectorAll(".card").forEach((card) => {
+                        card.classList.remove("flipped");
+                        card.querySelector(".card-image").style.display = "none";
+                    });
+                    const startTime = Date.now();
+                    start_counter = true;
+                    remaining_to_flip = 2;
+                }, TIME_TO_SHOW);
+            }, SMOOTH_TRANSITION);
         }
-      }
 
-      function checkMatch() {
-        const [firstCard, secondCard] = flippedCards;
-        if (firstCard.getAttribute('data-card') === secondCard.getAttribute('data-card')) {
-                matchedCards.push(firstCard);
-                matchedCards.push(secondCard);
-        } else {
-          setTimeout(() => {
-            firstCard.classList.remove("flipped");
-            firstCard.querySelector(".card-image").style.display = "none"; // Voltear de nuevo
-            secondCard.classList.remove("flipped");
-            secondCard.querySelector(".card-image").style.display = "none";
-          }, 1000);
+        function startGame() {
+            setTimeout(() => {
+                on_game = true;
+                let count = 0;
+                const maxCount = 999;
+                const startTime = Date.now();
 
-          // Disminuir el puntaje dependiendo de la dificultad
-          if (difficulty === 'easy') {
-                    score -= 5;
-                } else if (difficulty === 'medium') {
-                    score -= 10;
-                } else if (difficulty === 'hard') {
-                    score -= 15;
-                }
+                const interval = setInterval(() => {
+                    count = Math.floor((Date.now() - startTime) / 1000); // Calcular precisión en segundos
+                    document.getElementById("counter").textContent = `Tiempo: ${count}`;
 
-                // Actualizar el puntaje en pantalla
-                document.getElementById('score').innerText = score;
-
-                // Terminar el juego si el puntaje llega a 0
-                if (score <= 0) {
-                    redirectToEnd('loss');
-                }          
-        }
-        flippedCards = []; // Resetear las cartas volteadas
-        checkGameState();
-      }
-
-      // Función para verificar si el jugador ha ganado o perdido
-      function checkGameState() {
-        if (matchedCards.length === TOTAL_CARDS) {
-          redirectToEnd("win"); // Redirigir si ganó
-        } else if (score === 0) {
-          redirectToEnd("loss"); // Redirigir si perdió
-        }
-      }
-
-      // Función que maneja la redirección dependiendo del resultado (win/lose)
-      function redirectToEnd(result) {
-        fetch("/end", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: result }),
-        })
-          .then((response) => {
-            if (response.ok) {
-              window.location.replace("/end");
-            } else {
-              throw new Error("Error en la solicitud");
+                    if (count >= maxCount) {
+                        clearInterval(interval); // Detener el intervalo
+                    }
+                }, 800); 
+            }, TIME_TO_SHOW+SMOOTH_TRANSITION); 
+        }        
+        
+        function setDimensions(){
+            if (TOTAL_CARDS === 6) {
+                GAME_BOARD.style.maxWidth = 3 * 110 + "px";
             }
-          })
-          .catch((error) => console.error("ERROR:", error));
-      }
+            if (TOTAL_CARDS === 12) {
+                GAME_BOARD.style.maxWidth = 4 * 110 + "px";
+            }
+            if (TOTAL_CARDS === 20) {
+                GAME_BOARD.style.maxWidth = 5 * 110 + "px";
+            }
+        }
 
-      // Ajustar el max-width del game-board
-      const gameBoard = document.getElementById("game-board");
+        function flipCard(card) {
+            if (!on_game) {
+                return;
+            }
 
-      if (TOTAL_CARDS === 6) {
-        gameBoard.style.maxWidth = 3 * 110 + "px";
-      }
-      if (TOTAL_CARDS === 12) {
-        gameBoard.style.maxWidth = 4 * 110 + "px";
-      }
-      if (TOTAL_CARDS === 20) {
-        gameBoard.style.maxWidth = 5 * 110 + "px";
-      }
+            if (flippedCards.length < 2 && !matchedCards.includes(card)) {
+                card.classList.add("flipped");
+                card.querySelector(".card-image").style.display = "block"; // Mostrar carta
+                flippedCards.push(card);
 
-      let count = 0;
-      const maxCount = 999;
-      const counterElement = document.getElementById("counter");
+                if (flippedCards.length === 2) {
+                    checkMatch();
+                }
+            }
+        }
 
-      // Retrasa el inicio del contador en 3 segundos
-      setTimeout(() => {
-        const interval = setInterval(() => {
-          count++;
-          counterElement.textContent = `Tiempo: ${count}`;
+        function checkMatch() {
+            const [firstCard, secondCard] = flippedCards;
+            if (firstCard.getAttribute('data-card') === secondCard.getAttribute('data-card')) {
+                    matchedCards.push(firstCard);
+                    matchedCards.push(secondCard);
+            } else {
+                setTimeout(() => {
+                firstCard.classList.remove("flipped");
+                firstCard.querySelector(".card-image").style.display = "none"; // Voltear de nuevo
+                secondCard.classList.remove("flipped");
+                secondCard.querySelector(".card-image").style.display = "none";
+                }, 1000);
 
-          if (count >= maxCount) {
-            clearInterval(interval);
-          }
-        }, 1000); // 1000 ms = 1 segundo
-      }, 3000); // 3000 ms = 3 segundos de retraso
+                // Disminuir el puntaje dependiendo de la dificultad
+                if (difficulty === 'easy') {
+                        score -= 5;
+                    } else if (difficulty === 'medium') {
+                        score -= 10;
+                    } else if (difficulty === 'hard') {
+                        score -= 15;
+                    }
+
+                    // Actualizar el puntaje en pantalla
+                    document.getElementById('score').innerText = score;
+
+                    // Terminar el juego si el puntaje llega a 0
+                    if (score <= 0) {
+                        redirectToEnd('loss');
+                    }          
+            }
+            flippedCards = []; // Resetear las cartas volteadas
+            checkGameState();
+        }
+
+        // Función para verificar si el jugador ha ganado o perdido
+        function checkGameState() {
+            if (matchedCards.length === TOTAL_CARDS) {
+                redirectToEnd("win"); // Redirigir si ganó
+            } else if (score === 0) {
+                redirectToEnd("loss"); // Redirigir si perdió
+            }
+        }
+
+        // Función que maneja la redirección dependiendo del resultado (win/lose)
+        function redirectToEnd(result) {
+            fetch("/end", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: result }),
+            })
+                .then((response) => {
+                if (response.ok) {
+                    window.location.replace("/end");
+                } else {
+                    throw new Error("Error en la solicitud");
+                }
+                })
+                .catch((error) => console.error("ERROR:", error));
+        }
     </script>
 
     <form action="{{ url_for('index') }}">
