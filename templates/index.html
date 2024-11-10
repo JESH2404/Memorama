@@ -47,22 +47,37 @@
     </div>
     <script>
         const REDIRECT_DELAY = 300;
+        const SMOOTH_TRANSITION = 1000;
+        const NONMATCHED_DELAY = 2000;
+        const TIME_TO_SHOW = 3000;
+
         const TOTAL_CARDS = document.querySelectorAll('.card').length;
         const GAME_BOARD = document.getElementById("game-board");
-        const TIME_TO_SHOW = 3000;
-        const SMOOTH_TRANSITION = 500;
+        
 
         let score = document.body.getAttribute('data-score');
+        let penalization = 0;
         let difficulty = document.body.getAttribute('data-difficulty');
 
         let flippedCards = [];
         let matchedCards = [];
-        let on_game = false;
+        let able_to_flip = false;
 
+        setPenalizer();
         setDimensions();
         showCards();
         startGame();
 
+        
+        function setPenalizer(){
+            if (difficulty === 'easy') {
+                penalization = 5;
+            } else if (difficulty === 'medium') {
+                penalization = 10;
+            } else if (difficulty === 'hard') {
+                penalization = 15;
+            }
+        }
         
         function showCards() {
             setTimeout(() => {
@@ -78,6 +93,7 @@
                     });
                     const startTime = Date.now();
                     start_counter = true;
+                    able_to_flip = true;
                     remaining_to_flip = 2;
                 }, TIME_TO_SHOW);
             }, SMOOTH_TRANSITION);
@@ -85,7 +101,6 @@
 
         function startGame() {
             setTimeout(() => {
-                on_game = true;
                 let count = 0;
                 const maxCount = 999;
                 const startTime = Date.now();
@@ -114,60 +129,56 @@
         }
 
         function flipCard(card) {
-            if (!on_game) {
+            if (!able_to_flip) {
                 return;
             }
 
             if (flippedCards.length < 2 && !matchedCards.includes(card)) {
                 card.classList.add("flipped");
-                card.querySelector(".card-image").style.display = "block"; // Mostrar carta
+                card.querySelector(".card-image").style.display = "block"; 
                 flippedCards.push(card);
+            }
 
-                if (flippedCards.length === 2) {
-                    checkMatch();
-                }
+            if (flippedCards.length === 2) {
+                checkMatch();
             }
         }
 
         function checkMatch() {
+            able_to_flip = false;
             const [firstCard, secondCard] = flippedCards;
             if (firstCard.getAttribute('data-card') === secondCard.getAttribute('data-card')) {
                     matchedCards.push(firstCard);
                     matchedCards.push(secondCard);
+
+                    flippedCards = []; 
+                    checkGameState(); 
+                    able_to_flip = true;
             } else {
                 setTimeout(() => {
-                firstCard.classList.remove("flipped");
-                firstCard.querySelector(".card-image").style.display = "none"; // Voltear de nuevo
-                secondCard.classList.remove("flipped");
-                secondCard.querySelector(".card-image").style.display = "none";
-                }, 500);
+                    firstCard.classList.remove("flipped");
+                    firstCard.querySelector(".card-image").style.display = "none"; // Voltear de nuevo
+                    secondCard.classList.remove("flipped");
+                    secondCard.querySelector(".card-image").style.display = "none";
+                    
+                    score -= penalization;
+                    document.getElementById('score').innerText = score;  
 
-                // Disminuir el puntaje dependiendo de la dificultad
-                if (difficulty === 'easy') {
-                        score -= 5;
-                    } else if (difficulty === 'medium') {
-                        score -= 10;
-                    } else if (difficulty === 'hard') {
-                        score -= 15;
-                    }
+                    flippedCards = []; 
+                    checkGameState(); 
+                    able_to_flip = true;
+                }, NONMATCHED_DELAY);
 
-                    // Actualizar el puntaje en pantalla
-                    document.getElementById('score').innerText = score;
-
-                    // Terminar el juego si el puntaje llega a 0
-                    if (score <= 0) {
-                        redirectToEnd('loss');
-                    }          
+                   
             }
-            flippedCards = []; // Resetear las cartas volteadas
-            checkGameState();
+            
         }
 
         // Función para verificar si el jugador ha ganado o perdido
         function checkGameState() {
             if (matchedCards.length === TOTAL_CARDS) {
                 redirectToEnd("win"); // Redirigir si ganó
-            } else if (score === 0) {
+            } else if (score <= 0) {
                 redirectToEnd("loss"); // Redirigir si perdió
             }
         }
