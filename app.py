@@ -43,7 +43,7 @@ messages = {
     'loss': "Lo siento, has perdido. Se acabaron tus intentos."
 }
 
-#
+#tabla
 @app.route('/')
 def index():
     return render_template('difficulty.html')
