@@ -28,7 +28,7 @@
             left: 20px;
             font-size: 1.5em;
             font-weight: bold;
-            color: #333;
+            color: #FFFFFF;
         }
     </style>
 
@@ -185,20 +185,27 @@
 
         // Función que maneja la redirección dependiendo del resultado (win/lose)
         function redirectToEnd(result) {
+            const score = document.getElementById('score').innerText; // Obtener el puntaje actualizado
+            const time = document.getElementById("counter").innerText.split(': ')[1]; // Obtener tiempo actual
+
             fetch("/end", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: result }),
+                headers: { 
+                    "Content-Type": "application/json" // Formato de datos JSON
+                },
+                body: JSON.stringify({ status: result, score: score, time: time }), // Serializar los datos
             })
                 .then((response) => {
-                if (response.ok) {
-                    window.location.replace("/end");
-                } else {
-                    throw new Error("Error en la solicitud");
-                }
+                    if (response.ok) {
+                        window.location.replace("/end");
+                    } else {
+                        throw new Error("Error en la solicitud");
+                    }
                 })
                 .catch((error) => console.error("ERROR:", error));
         }
+
+
     </script>
 
     <form action="{{ url_for('index') }}">
